@@ -1,0 +1,32 @@
+1. match (n) where n.entity_type = "class" or n.entity_type = "interface" return n limit 50
+
+2. match (n:PackageDeclaration)-[:CONTAIN]->(m:TypeDeclaration) where n.simplename="filter" return n,m limit 20
+
+
+3. Match (n:TypeDeclaration{entity_type:"class",simplename:"OrcMage"})-[:EXTENDS*0..100]->(m:TypeDeclaration) with collect(m) as mainl
+UNWIND mainl as mal
+MATCH (u:MethodDeclaration{isConstructor:"False"})<-[:member]-(mal) where u.modifiers=~".*public.*" with collect(u) as childl,mainl
+UNWIND childl as chl
+MATCH (u:MethodDeclaration{isConstructor:"False"})<-[:OVERRIDES]-(chl) where u.modifiers=~".*public.*" with collect(u) as bal,childl,mainl
+UNWIND childl as chll
+UNWIND bal as ball
+MATCH(n:MethodDeclaration{isConstructor:"False"}) where n in childl AND NOT n in bal with collect(n) as ansl
+UNWIND ansl as ans
+return ans limit 5
+
+
+4. match (n{simplename: "OrcMage"}) - [:EXTENDS*] ->(m) return n,m limit 20
+
+5. match (n:IfStatement) - [condition]-> (m:SimpleName) return n,m limit 20
+
+6. match (n:IfStatement) - [condition]-> (m) where m<>"SimpleName" return n,m limit 20
+
+7. match (n:PackageDeclaration)<-[:CONTAIN_IN]-(m:TypeDeclaration) return n,m limit 20
+
+8. match (n:TypeDeclaration)-[:member]->(m:MethodDeclaration) where n.simplename="Item" return n.simplename,sum(toInteger(m.Cyclomatic)) limit 20
+
+9. match (n:MethodDeclaration) where toInteger(n.CountStmt) > 9 return n limit 50
+
+10. match (m:MethodInvocation)-[:argument]->(n) with m,count(n) as ans where ans>=4 return distinct m limit 50
+
+11. match (n:MethodDeclaration) where toInteger(n.CountLineCode) > 49 return n limit 50
